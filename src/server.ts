@@ -50,7 +50,7 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.post("/", async (req: Request, res: Response) => {
+app.post("/api/users", async (req: Request, res: Response) => {
   const { name, email, password, age } = req.body;
 
   try {
@@ -65,6 +65,75 @@ app.post("/", async (req: Request, res: Response) => {
 
     res.status(201).json({
       message: "User Created Successfully",
+      data: result.rows[0],
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.message,
+      error: error,
+    });
+  }
+});
+
+app.get("/api/users", async (req: Request, res: Response) => {
+  try {
+    const result: Result = await pool.query(`SELECT * FROM users`);
+    res.status(200).json({
+      success: true,
+      message: "Users Fetched Successfully",
+      data: result.rows,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.message,
+      error: error,
+    });
+  }
+});
+
+app.get("/api/users/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  try {
+    const result: Result = await pool.query(`SELECT * FROM users WHERE id=$1`, [
+      id,
+    ]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "User Fetched Successfully",
+      data: result.rows[0],
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.message,
+      error: error,
+    });
+  }
+});
+
+app.put("/api/users/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const { name, password, age, is_active } = req.body;
+
+  try {
+    const result: Result = await pool.query(
+      `UPDATE users SET name=$1,password=$2,age=$3,is_active=$4 WHERE id=$5 RETURNING *`,
+      [name, password, age, is_active, id],
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "User Updated Successfully",
       data: result.rows[0],
     });
   } catch (error: any) {
