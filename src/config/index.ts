@@ -6,7 +6,7 @@ dotenv.config({
 });
 
 const config = {
-  connection_String: process.env.DATABASE_URL,
+  connection_String: process.env.DATABASE_URL as string,
   port: process.env.PORT,
 };
 
